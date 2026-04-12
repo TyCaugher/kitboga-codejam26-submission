@@ -16,36 +16,53 @@
 
             #overlay-container {
                 width: 960px;
-                height: 540px;
+                height: 550px;
             }
 
             /* Your style here... (feel free to remove this example styling) */
             #skip {
                 position: absolute;
-                bottom: 60px;
-                right: 0;
+                bottom: 20px;
+                left: 50%;
+                transform: translateX(-50%);
                 padding: 10px 18px;
                 background: rgba(0, 0, 0, 0.6);
                 border: 1px solid black;
-                border-right-width: 0;
                 font-size: 1.2rem;
-                border-radius: 4px 0 0 4px;
+                border-radius: 4px;
                 color: white;
                 cursor: pointer;
                 display: none;
+                overflow: hidden;
             }
+            #skip::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: -100%;
+                width: 50%;
+                height: 100%;
+                background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
+                animation: shine 2s infinite;
+            }
+            @keyframes shine {
+                0% { left: -100%; }
+                100% { left: 200%; }
+            }
+
             #skipCooldown {
                 position: absolute;
-                bottom: 60px;
-                right: 0;
+                bottom: 20px;
+                left: 50%;
+                transform: translateX(-50%);
                 padding: 10px 18px;
                 background: rgba(0, 0, 0, 0.6);
                 border: 1px solid black;
-                border-right-width: 0;
                 font-size: 1.2rem;
-                border-radius: 4px 0 0 4px;
+                border-radius: 4px;
                 color: gainsboro;
                 cursor: not-allowed;
+                display: none;
             }
             #cardList {
                 height: 100px;
@@ -298,7 +315,7 @@
                     var targetMargin = 380 - winningPos * 100;
                     $('.card').first().animate({
                         marginLeft: targetMargin + "px"
-                    }, 9378, timing, function () { // 9378 is the length of our audio file
+                    }, 9300, timing, function () { // 9378 is the length of our audio file
 
                         var src = $('#itemNumber' + winningPos + ' img').attr('src');
                         $('#itemNumber' + winningPos).css({background: "linear-gradient(#00bf09, #246b27)"});
@@ -370,10 +387,6 @@
                 }
 
             })(window, document);
-
-            // Case opening code
-            // blue - common - coupon code
-            //
         </script>
     </body>
 </html>
