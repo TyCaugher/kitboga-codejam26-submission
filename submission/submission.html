@@ -1,84 +1,319 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title>Joel</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+    <head>
+        <meta charset="utf-8">
+        <title>Joel</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <style type="text/css">
-    html,
-    body {
-      background: transparent;
-      margin: 0;
-      padding: 0;
-      font-family: sans-serif;
-    }
+        <style type="text/css">
+            html,
+            body {
+                background: transparent;
+                margin: 0;
+                padding: 0;
+                font-family: sans-serif;
+            }
 
-    #overlay-container {
-      width: 960px;
-      height: 540px;
-    }
+            #overlay-container {
+                width: 960px;
+                height: 540px;
+            }
 
-    /* Your style here... (feel free to remove this example styling) */
-    #skip {
-      display: none; /* Hidden until ad starts */
-      position: absolute;
-      bottom: 60px;
-      right: 0;
-      padding: 10px 18px;
-      background: rgba(0, 0, 0, 0.6);
-      border: 1px solid black;
-      border-right-width: 0;
-      font-size: 1.2rem;
-      border-radius: 4px 0 0 4px;
-      color: white;
-      cursor: pointer;
-    }
-  </style>
-</head>
+            /* Your style here... (feel free to remove this example styling) */
+            #skip {
+                position: absolute;
+                bottom: 60px;
+                right: 0;
+                padding: 10px 18px;
+                background: rgba(0, 0, 0, 0.6);
+                border: 1px solid black;
+                border-right-width: 0;
+                font-size: 1.2rem;
+                border-radius: 4px 0 0 4px;
+                color: white;
+                cursor: pointer;
+            }
+            #cardList {
+                height: 100px;
+                width: 800px;
+                position: relative;
+                border: 2px solid black;
+                overflow: hidden;
+                white-space: nowrap;
+            }
 
-<body>
-  <div id="overlay-container">
-    <!-- We've added a sample button. Feel free to remove it: -->
-    <button id="skip">
-      Skip Ad...
-    </button>
-  </div>
+            .card {
+                display: inline-block;
+                background-color: red;
+                text-align: center;
+                border-left: 1px solid black;
+                border-right: 1px solid black;
+                width: 100px;
+                height: 100px;
+            }
 
-  <script type="text/javascript">
-    (function(window, document){
-      // This is how you tell the parent window that the ad was successfully skipped.
-      function adSuccess() {
-        window.top.postMessage({ type: 'success' }, '*');
-      }
+            .card > img {
+                width: 100px;
+                height: 100px;
+            }
 
-      const skipButton = document.getElementById('skip');
+            .arrow-down {
+                margin-left: 380px;
+                width: 0;
+                height: 0;
+                border-left: 20px solid transparent;
+                border-right: 20px solid transparent;
+                border-top: 20px solid #f00;
+            }
 
-      // Listen for messages from the game shell
-      window.addEventListener('message', (event) => {
-        if (!event.data || !event.data.type) return;
+            #dialog-msg > img {
+                width: 150px;
+                height: 150px;
+            }
 
-        if (event.data.type === 'adStarted') {
-          // Show the skip button when the ad starts
-          skipButton.style.display = 'block';
-        }
+            #dialog-msg {
+                text-align: center;
+            }
 
-        // By default, if the user doesn't "skip" the ad before the video ends,
-        // we call fail to restart. You're welcome to replace this with a survey
-        // or other interaction instead (see examples/survey).
-        if (event.data.type === 'adFinished') {
-          skipButton.style.display = 'none';
-          window.top.postMessage({ type: 'fail' }, '*');
-        }
-      });
+            #spin-container {
+                display: none;
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                text-align: center;
+            }
+            #spinSound {
+                display: none;
+            }
 
-      // Your ad overlay code goes here, we've added a simple example below:
-      skipButton.addEventListener('click', () => {
-        skipButton.style.display = 'none';
-        adSuccess();
-      });
+            .card.tease {
+                position: relative;
+                border: 4px solid transparent;
+                background-origin: border-box;
+                background-clip: padding-box, border-box;
+                background-image: 
+                    linear-gradient(#333, #333),
+                    linear-gradient(90deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3, #ff0000);
+                background-size: 100% 100%, 300% 100%;
+                animation: rainbow-border 1s linear infinite;
+            }
 
-    })(window, document);
-  </script>
-</body>
+            @keyframes rainbow-border {
+                0% { background-position: 0% 0%, 0% 50%; }
+                100% { background-position: 0% 0%, 300% 50%; }
+            }
+        </style>
+    </head>
+
+    <body>
+        <div id="overlay-container">
+            <div id="spin-container">
+                <div class="arrow-down"></div>
+                <div id="cardList"></div>
+            </div>
+            <div id="dialog">
+                <div id="dialog-msg"></div>
+            </div>
+            <button id="skip">Skip Ad with AdRewards™</button>
+            <audio id="spinSound" src="spin_sound.mp3"></audio>
+        </div>
+
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.2/jquery-ui.min.js"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.2/themes/base/jquery-ui.min.css">
+        <script type="text/javascript">
+            (function (window, document) {
+                window.adSuccess = function() {
+                    window.top.postMessage({
+                        type: 'success'
+                    }, '*');
+                };
+
+                const skipButton = document.getElementById('skip');
+
+                // Listen for messages from the game shell
+                window.addEventListener('message', (event) => {
+                    if (!event.data || !event.data.type) 
+                        return;
+                    
+
+                    if (event.data.type === 'adStarted') { // Show the skip button when the ad starts
+                        skipButton.style.display = 'block';
+                    }
+
+                    // By default, if the user doesn't "skip" the ad before the video ends,
+                    // we call fail to restart. You're welcome to replace this with a survey
+                    // or other interaction instead (see examples/survey).
+                    if (event.data.type === 'adFinished') {
+                        skipButton.style.display = 'none';
+                        window.top.postMessage({
+                            type: 'fail'
+                        }, '*');
+                    }
+                });
+
+                // Your ad overlay code goes here, we've added a simple example below:
+                skipButton.addEventListener('click', () => {
+                    skipButton.style.display = 'none';
+                    openCase();
+                });
+            })(window, document);
+
+            // Case opening code
+            // blue - common - coupon code
+            //
+            var ODDS = {
+                worthless:    { weight: 60, color: 'white', label: 'Blue' }, // coupon codes, worthless things to make them angry
+                uncommon: { weight: 30, color: 'white', label: 'Green' },
+                skipAd:    { weight: 5, color: 'white', label: 'Red' }, // skip add success
+                tease:  { weight: 5, color: 'yellow', label: 'Yellow' } // gift card, they will never get it.
+            };
+
+            var img = {
+                    worthless: '<img src="images/coupon_code_5.png"/>',
+                    uncommon: '<img src="images/coupon_code_10.png"/>',
+                    skipAd: '<img src="images/skip_ad.png"/>',
+                    tease: '<img src="images/apple_card.png"/>'
+            }
+            function random(min, max) {
+              return Math.floor((Math.random() * (max - min)) + min);
+            }
+
+            function makeFakeCouponCode() {
+                var result = "";
+                var characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890";
+                var poolLength = characters.length;
+                var codeLength = 12;
+
+                for (var i = 0; i < codeLength; i++) {
+                    result += characters.charAt(random(0, poolLength));
+                }
+                return result;
+            }
+
+            function getWeightedRarity() {
+                var total = 0;
+                for (var rarity in ODDS) {
+                    total += ODDS[rarity].weight;
+                }
+                var rand = Math.random() * total;
+                var cumulative = 0;
+                for (var rarity in ODDS) {
+                    cumulative += ODDS[rarity].weight;
+                    if (rand < cumulative) {
+                        return rarity;
+                    }
+                }
+                return 'worthless';
+            }
+
+            // Get the rarity of "item" that is going to be won!
+            function getWinningRarity() {
+                var winningRarity;
+                do {
+                    winningRarity = getWeightedRarity();
+                } while (winningRarity === 'tease'); // we should never be able to win the "tease" rarity.
+                return winningRarity;
+            }
+
+            function openCase() {
+                console.log("OpenCase Pressed")
+                document.getElementById('spin-container').style.display = 'block';
+                document.getElementById('spinSound').play();
+                
+                var winningPos = random(50,180);
+                var winningRarity = getWinningRarity();
+                
+                reset(winningPos, winningRarity);
+                
+                var timings = [
+                    "easeOutExpo",
+                    "easeOutQuad",
+                    "easeOutCubic",
+                    "easeOutQuart",
+                    "easeOutQuint",
+                    "easeOutSine",
+                    "easeOutCirc"
+                ];
+                var timing = timings[random(0, timings.length)];
+
+                var targetMargin = 380 - winningPos * 100;
+                $('.card').first().animate({
+                    marginLeft: targetMargin + "px"
+                }, 9378, timing, function () { // 9378 is the length of our audio file
+
+                    var src = $('#itemNumber' + winningPos + ' img').attr('src');
+                    $('#itemNumber' + winningPos).css({background: "linear-gradient(#00bf09, #246b27)"});
+
+                    
+                    var discountCode = makeFakeCouponCode();
+                    if (winningRarity == "worthless" || winningRarity == "uncommon") {
+                        var couponCode = makeFakeCouponCode();
+                        $('#dialog-msg').html("You have received " + ODDS[winningRarity].label + " item!" + "<br><img src=" + src + ">" + "<br> Your AdRewards Discount Code: <br>" + "<h3>" + couponCode + "</h3>");
+                        $('#dialog').dialog({
+                        modal: true,
+                        title: "Ad Reward!",
+                        resizeable: false,
+                        draggable: false,
+                        width: 400,
+                        closeOnEscape: false,
+                        open: function(event, ui) {
+                            $('.ui-dialog-titlebar-close', $(this).parent()).hide();
+                        },
+                        buttons: {
+                            "Claim AdRewards™ Reward": function () {
+                                $(this).dialog("close");
+                                document.getElementById('spin-container').style.display = 'none';
+                                
+                            }
+                        }
+                    });
+                    }
+                    else if (winningRarity == "skipAd") {
+                        $('#dialog-msg').html("Congragulations!" + "<br><img src=" + src + ">");
+                        $('#dialog').dialog({
+                        modal: true,
+                        title: "Ad Reward!",
+                        resizeable: false,
+                        draggable: false,
+                        width: 400,
+                        closeOnEscape: false,
+                        open: function(event, ui) {
+                            $('.ui-dialog-titlebar-close', $(this).parent()).hide();
+                        },
+                        buttons: {
+                            "Claim AdRewards™ Reward": function () {
+                                $(this).dialog("close");
+                                document.getElementById('spin-container').style.display = 'none';
+                                window.adSuccess();
+                            }
+                        }
+                    });
+                    }
+
+                    
+                });
+            }
+
+            // Reset the spinner
+            function reset(winningPos, winningRarity) {
+                $('.card').remove();
+                for (var i = 0; i < 210; i++) {
+                    var rarity;
+                    if (i === winningPos) {
+                        rarity = winningRarity;
+                    } else {
+                        rarity = getWeightedRarity();
+                    }
+                    var cardData = ODDS[rarity];
+                    var extraClass = rarity === 'tease' ? ' tease' : '';
+                    var element = '<div class="card' + extraClass + '" style="background-color: ' + cardData.color + ';" data-rarity="' + rarity + '" id=itemNumber' + i + '>' + img[rarity] + '</div>';
+                    $('#cardList').append(element);
+                }
+                $('.card').first().css('margin-left', -1000);
+            }
+            
+        </script>
+    </body>
 </html>
