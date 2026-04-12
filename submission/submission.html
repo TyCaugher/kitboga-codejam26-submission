@@ -136,6 +136,11 @@
                     background-position: 0 0, 300% 50%;
                 }
             }
+
+            canvas {
+                z-index: 9999 !important;
+                pointer-events: none;
+            }
         </style>
     </head>
 
@@ -156,6 +161,7 @@
         <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
         <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.2/jquery-ui.min.js"></script>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.2/themes/base/jquery-ui.min.css">
+        <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.4/dist/confetti.browser.min.js"></script>
         <script type="text/javascript">
             (function (window, document) {
                 window.adSuccess = function () {
@@ -334,6 +340,7 @@
                                 closeOnEscape: false,
                                 open: function (event, ui) {
                                     $('.ui-dialog-titlebar-close', $(this).parent()).hide();
+                                    confetti();
                                 },
                                 buttons: {
                                     "Claim AdRewards™ Reward": function () {
@@ -353,6 +360,7 @@
                                 closeOnEscape: false,
                                 open: function (event, ui) {
                                     $('.ui-dialog-titlebar-close', $(this).parent()).hide();
+                                    confetti();
                                 },
                                 buttons: {
                                     "Claim AdRewards™ Reward": function () {
@@ -363,6 +371,7 @@
                                 }
                             });
                         }
+                        
 
 
                     });
