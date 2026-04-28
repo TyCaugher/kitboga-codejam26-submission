@@ -4,158 +4,26 @@
         <meta charset="utf-8">
         <title>Joel</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
-
-        <style type="text/css">
-            html,
-            body {
-                background: transparent;
-                margin: 0;
-                padding: 0;
-                font-family: sans-serif;
-            }
-
-            #overlay-container {
-                width: 960px;
-                height: 550px;
-            }
-
-            /* Your style here... (feel free to remove this example styling) */
-            #skip {
-                position: absolute;
-                bottom: 20px;
-                left: 50%;
-                transform: translateX(-50%);
-                padding: 10px 18px;
-                background: rgba(0, 0, 0, 0.6);
-                border: 1px solid black;
-                font-size: 1.2rem;
-                border-radius: 4px;
-                color: white;
-                cursor: pointer;
-                display: none;
-                overflow: hidden;
-            }
-            #skip::before {
-                content: '';
-                position: absolute;
-                top: 0;
-                left: -100%;
-                width: 50%;
-                height: 100%;
-                background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
-                animation: shine 2s infinite;
-            }
-            @keyframes shine {
-                0% { left: -100%; }
-                100% { left: 200%; }
-            }
-
-            #skipCooldown {
-                position: absolute;
-                bottom: 20px;
-                left: 50%;
-                transform: translateX(-50%);
-                padding: 10px 18px;
-                background: rgba(0, 0, 0, 0.6);
-                border: 1px solid black;
-                font-size: 1.2rem;
-                border-radius: 4px;
-                color: gainsboro;
-                cursor: not-allowed;
-                display: none;
-            }
-            #cardList {
-                height: 100px;
-                width: 800px;
-                position: relative;
-                border: 2px solid black;
-                overflow: hidden;
-                white-space: nowrap;
-            }
-
-            .card {
-                display: inline-block;
-                background-color: red;
-                text-align: center;
-                border-left: 1px solid black;
-                border-right: 1px solid black;
-                width: 100px;
-                height: 100px;
-            }
-
-            .card > img {
-                width: 100px;
-                height: 100px;
-            }
-
-            .arrow-down {
-                margin-left: 380px;
-                width: 0;
-                height: 0;
-                border-left: 20px solid transparent;
-                border-right: 20px solid transparent;
-                border-top: 20px solid #f00;
-            }
-
-            #dialog-msg > img {
-                width: 150px;
-                height: 150px;
-            }
-
-            #dialog-msg {
-                text-align: center;
-            }
-
-            #spin-container {
-                display: none;
-                position: absolute;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                text-align: center;
-            }
-            #spinSound {
-                display: none;
-            }
-
-            .card.tease {
-                position: relative;
-                border: 4px solid transparent;
-                background-origin: border-box;
-                background-clip: padding-box, border-box;
-                background-image: linear-gradient(#333, #333), linear-gradient(90deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3, #ff0000);
-                background-size: 100% 100%, 300% 100%;
-                animation: rainbow-border 1s linear infinite;
-            }
-
-            @keyframes rainbow-border {
-                0% {
-                    background-position: 0 0, 0 50%;
-                }
-                100% {
-                    background-position: 0 0, 300% 50%;
-                }
-            }
-
-            canvas {
-                z-index: 9999 !important;
-                pointer-events: none;
-            }
-        </style>
+        <link rel="stylesheet" href="style.css">
     </head>
 
     <body>
         <div id="overlay-container">
             <div id="spin-container">
+                <div id="spin-header">AdRewards CHALLENGE&#8482;<br><small>Stop the wheel to WIN!</small></div>
                 <div class="arrow-down"></div>
                 <div id="cardList"></div>
+                <div id="speed-display">PROMO LEVEL: <span id="speed-value">---</span></div>
+                <div id="near-miss-display"></div>
             </div>
             <div id="dialog">
                 <div id="dialog-msg"></div>
             </div>
-            <button id="skip">Skip Ad with AdRewards™</button>
-            <button id="skipCooldown">Next AdRewards™ in</button>
-            <audio id="spinSound" src="spin_sound.mp3"></audio>
+            <button id="skip">Skip Ad AND MORE With AdRewards&#8482;</button>
+            <button id="skipCooldown">Next AdRewards&#8482; in</button>
+            <button id="stopBtn">Stop</button>
+            <audio id="heartbeatSound" src="heartbeat.wav" loop></audio>
+            <audio id="clickSound" src="boom1.wav"></audio>
         </div>
 
         <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
@@ -169,38 +37,24 @@
                         type: 'success'
                     }, '*');
                 };
-
+                const heartbeatAudio = document.getElementById('heartbeatSound');
                 const skipButton = document.getElementById('skip');
                 const skipCooldown = document.getElementById('skipCooldown');
-                var cooldownDuration = 10; // seconds
-
+                const buttonAudio = document.getElementById('clickSound');
+                var cooldownDuration = 10;
                 skipCooldown.style.display = 'none';
 
-                // Listen for messages from the game shell
                 window.addEventListener('message', (event) => {
-                    if (!event.data || !event.data.type) 
-                        return;
-                    
+                    if (!event.data || !event.data.type) return;
 
-
-                    if (event.data.type === 'adStarted') { // Show the skip button when the ad starts
+                    if (event.data.type === 'adStarted') {
                         skipButton.style.display = 'block';
                     }
-
-                    // By default, if the user doesn't "skip" the ad before the video ends,
-                    // we call fail to restart. You're welcome to replace this with a survey
-                    // or other interaction instead (see examples/survey).
                     if (event.data.type === 'adFinished') {
                         skipButton.style.display = 'none';
-                        window.top.postMessage({
-                            type: 'fail'
-                        }, '*');
+                        window.top.postMessage({ type: 'fail' }, '*');
                     }
                 });
-
-                // Your ad overlay code goes here, we've added a simple example below:
-                
-
 
                 skipButton.addEventListener('click', () => {
                     skipButton.style.display = 'none';
@@ -208,28 +62,11 @@
                     startCooldown();
                 });
 
-
                 var ODDS = {
-                    worthless: {
-                        weight: 60,
-                        color: 'white',
-                        label: 'Blue'
-                    }, // coupon codes, worthless things to make them angry
-                    uncommon: {
-                        weight: 30,
-                        color: 'white',
-                        label: 'Green'
-                    },
-                    skipAd: {
-                        weight: 5,
-                        color: 'white',
-                        label: 'Red'
-                    }, // skip add success
-                    tease: {
-                        weight: 5,
-                        color: 'yellow',
-                        label: 'Yellow'
-                    } // gift card, they will never get it.
+                    worthless: { weight: 40, color: 'white', label: 'Blue' },
+                    uncommon: { weight: 30, color: 'white', label: 'Green' },
+                    skipAd: { weight: 20, color: 'white', label: 'Red' },
+                    tease: { weight: 10, color: 'yellow', label: 'Yellow' }
                 };
 
                 var img = {
@@ -237,7 +74,8 @@
                     uncommon: '<img src="images/coupon_code_10.png"/>',
                     skipAd: '<img src="images/skip_ad.png"/>',
                     tease: '<img src="images/apple_card.png"/>'
-                }
+                };
+
                 function random(min, max) {
                     return Math.floor((Math.random() * (max - min)) + min);
                 }
@@ -245,11 +83,8 @@
                 function makeFakeCouponCode() {
                     var result = "";
                     var characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890";
-                    var poolLength = characters.length;
-                    var codeLength = 25;
-
-                    for (var i = 0; i < codeLength; i++) {
-                        result += characters.charAt(random(0, poolLength));
+                    for (var i = 0; i < 25; i++) {
+                        result += characters.charAt(random(0, characters.length));
                     }
                     return result;
                 }
@@ -258,143 +93,391 @@
                     skipButton.style.display = 'none';
                     skipCooldown.style.display = 'block';
                     var timeLeft = cooldownDuration;
-                    skipCooldown.textContent = "Next AdRewards™ in " + timeLeft + " seconds"
-
+                    skipCooldown.textContent = "Next AdRewards\u2122 in " + timeLeft + " seconds";
                     var timer = setInterval(() => {
                         timeLeft--;
                         if (timeLeft <= 0) {
                             clearInterval(timer);
                             skipCooldown.style.display = 'none';
-                            skipButton.style.display = 'block';
+                            if (spinContainer.style.display !== 'block') {
+                                skipButton.style.display = 'block';
+                            }
                         } else {
-                            skipCooldown.textContent = 'Next AdRewards™ in ' + timeLeft + 's';
+                            skipCooldown.textContent = 'Next AdRewards\u2122 in ' + timeLeft + 's';
                         }
                     }, 1000);
                 }
 
                 function getWeightedRarity() {
                     var total = 0;
-                    for (var rarity in ODDS) {
-                        total += ODDS[rarity].weight;
-                    }
+                    for (var rarity in ODDS) total += ODDS[rarity].weight;
                     var rand = Math.random() * total;
                     var cumulative = 0;
                     for (var rarity in ODDS) {
                         cumulative += ODDS[rarity].weight;
-                        if (rand < cumulative) {
-                            return rarity;
-                        }
+                        if (rand < cumulative) return rarity;
                     }
                     return 'worthless';
                 }
 
-                // Get the rarity of "item" that is going to be won!
                 function getWinningRarity() {
                     var winningRarity;
                     do {
                         winningRarity = getWeightedRarity();
-                    } while (winningRarity === 'tease'); // we should never be able to win the "tease" rarity.
+                    } while (winningRarity === 'tease');
                     return winningRarity;
                 }
 
-                function openCase() {
-                    console.log("OpenCase Pressed")
-                    document.getElementById('spin-container').style.display = 'block';
-                    document.getElementById('spinSound').play();
-
-                    var winningPos = random(50, 180);
-                    var winningRarity = getWinningRarity();
-
-                    reset(winningPos, winningRarity);
-
-                    var timings = [
-                        "easeOutExpo",
-                        "easeOutQuad",
-                        "easeOutCubic",
-                        "easeOutQuart",
-                        "easeOutQuint",
-                        "easeOutSine",
-                        "easeOutCirc"
-                    ];
-                    var timing = timings[random(0, timings.length)];
-
-                    var targetMargin = 380 - winningPos * 100;
-                    $('.card').first().animate({
-                        marginLeft: targetMargin + "px"
-                    }, 9300, timing, function () { // 9378 is the length of our audio file
-
-                        var src = $('#itemNumber' + winningPos + ' img').attr('src');
-                        $('#itemNumber' + winningPos).css({background: "linear-gradient(#00bf09, #246b27)"});
-
-
-                        var discountCode = makeFakeCouponCode();
-                        if (winningRarity == "worthless" || winningRarity == "uncommon") {
-                            var couponCode = makeFakeCouponCode();
-                            $('#dialog-msg').html("You have received " + ODDS[winningRarity].label + " item!" + "<br><img src=" + src + ">" + "<br> Your AdRewards Discount Code: <br>" + "<h3>" + couponCode + "</h3>");
-                            $('#dialog').dialog({
-                                modal: true,
-                                title: "Ad Reward!",
-                                resizeable: false,
-                                draggable: false,
-                                width: 400,
-                                closeOnEscape: false,
-                                open: function (event, ui) {
-                                    $('.ui-dialog-titlebar-close', $(this).parent()).hide();
-                                    confetti();
-                                },
-                                buttons: {
-                                    "Claim AdRewards™ Reward": function () {
-                                        $(this).dialog("close");
-                                        document.getElementById('spin-container').style.display = 'none';
-                                    }
-                                }
-                            });
-                        } else if (winningRarity == "skipAd") {
-                            $('#dialog-msg').html("Congragulations!" + "<br><img src=" + src + ">");
-                            $('#dialog').dialog({
-                                modal: true,
-                                title: "Ad Reward!",
-                                resizeable: false,
-                                draggable: false,
-                                width: 400,
-                                closeOnEscape: false,
-                                open: function (event, ui) {
-                                    $('.ui-dialog-titlebar-close', $(this).parent()).hide();
-                                    confetti();
-                                },
-                                buttons: {
-                                    "Claim AdRewards™ Reward": function () {
-                                        $(this).dialog("close");
-                                        document.getElementById('spin-container').style.display = 'none';
-                                        window.adSuccess();
-                                    }
-                                }
-                            });
-                        }
-                        
-
-
-                    });
+                // ===== SKILL-BASED CHAOS WHEEL =====
+                var wheelPos = 0;
+                var wheelSpeed = 0;
+                var targetSpeed = 5;
+                var isSpinning = false;
+                var isDecelerating = false;
+                var animFrameId = null;
+                var cards = [];
+                var chaosTimer = 0;
+                var fakePauseTimer = 5000;
+                var fakePausing = false;
+                var lastTime = 0;
+                var nearMissTimer = 0;
+                var lastCenterIdx = -1;
+                var tickPool = [];
+                var tickPoolIdx = 0;
+                var TICK_POOL_SIZE = 8;
+                for (var t = 0; t < TICK_POOL_SIZE; t++) {
+                    var tick = new Audio('click.wav');
+                    tick.volume = 0.15;
+                    tickPool.push(tick);
                 }
 
-                // Reset the spinner
-                function reset(winningPos, winningRarity) {
-                    $('.card').remove();
-                    for (var i = 0; i < 210; i++) {
-                        var rarity;
-                        if (i === winningPos) {
-                            rarity = winningRarity;
-                        } else {
-                            rarity = getWeightedRarity();
-                        }
-                        var cardData = ODDS[rarity];
-                        var extraClass = rarity === 'tease' ? ' tease' : '';
-                        var element = '<div class="card' + extraClass + '" style="background-color: ' + cardData.color + ';" data-rarity="' + rarity + '" id=itemNumber' + i + '>' + img[rarity] + '</div>';
-                        $('#cardList').append(element);
+                var CARD_WIDTH = 102;
+                var CONTAINER_WIDTH = 800;
+                var TOTAL_CARDS = 400;
+
+                var stopBtnEl = document.getElementById('stopBtn');
+                var speedDisplay = document.getElementById('speed-value');
+                var spinContainer = document.getElementById('spin-container');
+                var cardListEl = document.getElementById('cardList');
+                var nearMissDisplay = document.getElementById('near-miss-display');
+                var arrowEl = document.querySelector('.arrow-down');
+
+                var nearMissMessages = [
+                    'SO CLOSE! Try again!',
+                    'Almost had the gift card!',
+                    'Oof, just missed it!',
+                    'RNG hates you!',
+                    'Skill issue detected.',
+                    'The wheel has spoken.',
+                    'Maybe next time... kidding.',
+                    'Your finger slipped!',
+                    'So close it hurts!',
+                    'AdRewards\u2122 regrets to inform you...'
+                ];
+
+                function generateCards() {
+                    cards = [];
+                    for (var i = 0; i < TOTAL_CARDS; i++) {
+                        cards.push({ rarity: getWeightedRarity(), index: i });
                     }
-                    $('.card').first().css('margin-left', -1000);
+                    // sprinkle extra tease items to torment
+                    for (var j = 0; j < 12; j++) {
+                        var pos = random(15, TOTAL_CARDS - 15);
+                        cards[pos].rarity = 'tease';
+                    }
                 }
 
+                function buildCardList() {
+                    cardListEl.innerHTML = '';
+                    for (var i = 0; i < cards.length; i++) {
+                        var cardData = ODDS[cards[i].rarity];
+                        var extraClass = cards[i].rarity === 'tease' ? ' tease' : '';
+                        var el = document.createElement('div');
+                        el.className = 'card' + extraClass;
+                        el.style.backgroundColor = cardData.color;
+                        el.setAttribute('data-rarity', cards[i].rarity);
+                        el.id = 'itemNumber' + i;
+                        el.innerHTML = img[cards[i].rarity];
+                        cardListEl.appendChild(el);
+                    }
+                }
+
+                function getCardAtCenter() {
+                    var centerPixel = wheelPos + CONTAINER_WIDTH / 2;
+                    var idx = Math.floor(centerPixel / CARD_WIDTH);
+                    if (idx < 0) idx = 0;
+                    if (idx >= TOTAL_CARDS) idx = TOTAL_CARDS - 1;
+                    return idx;
+                }
+
+                function getCenterCardRarity() {
+                    var idx = getCardAtCenter();
+                    return cards[idx] ? cards[idx].rarity : 'worthless';
+                }
+
+                function isTeaseNearby(range) {
+                    var centerIdx = getCardAtCenter();
+                    for (var i = centerIdx - range; i <= centerIdx + range; i++) {
+                        if (i >= 0 && i < TOTAL_CARDS && cards[i].rarity === 'tease') {
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+
+                function updateSpeed(dt) {
+                    if (!isSpinning) return;
+
+                    chaosTimer -= dt;
+                    fakePauseTimer -= dt;
+
+                    // fake pause: brief slowdown to bait clicks
+                    if (!fakePausing && fakePauseTimer <= 0 && Math.random() < 0.008) {
+                        fakePausing = true;
+                        fakePauseTimer = 150 + Math.random() * 400;
+                        targetSpeed = 0.3 + Math.random() * 1;
+                    }
+                    if (fakePausing && fakePauseTimer <= 0) {
+                        fakePausing = false;
+                        targetSpeed = 4 + Math.random() * 6;
+                        chaosTimer = 200 + Math.random() * 600;
+                    }
+
+                    // chaos speed changes
+                    if (!fakePausing && chaosTimer <= 0) {
+                        var roll = Math.random();
+                        if (roll < 0.15) {
+                            targetSpeed = 7 + Math.random() * 9;
+                        } else if (roll < 0.30) {
+                            targetSpeed = 0.5 + Math.random() * 1.5;
+                        } else if (roll < 0.42) {
+                            targetSpeed = -(4 + Math.random() * 6);
+                        } else if (roll < 0.50) {
+                            targetSpeed = (Math.random() - 0.5) * 17;
+                        } else {
+                            targetSpeed = 2.5 + Math.random() * 5;
+                        }
+                        chaosTimer = 150 + Math.random() * 1800;
+                    }
+
+                    // tease proximity: BOLT past it
+                    if (isTeaseNearby(2)) {
+                        var dir = wheelSpeed >= 0 ? 1 : -1;
+                        if (Math.abs(targetSpeed) < 7) {
+                            targetSpeed = dir * (8 + Math.random() * 5);
+                        }
+                    }
+
+                    // lerp toward target speed
+                    var lerpRate = isDecelerating ? 0.006 : 0.05;
+                    wheelSpeed += (targetSpeed - wheelSpeed) * lerpRate;
+
+                    // deceleration
+                    if (isDecelerating) {
+                        wheelSpeed *= 0.97;
+                        // random micro-jolts while stopping
+                        wheelSpeed += (Math.random() - 0.5) * 1;
+                        if (Math.abs(wheelSpeed) < 0.06) {
+                            wheelSpeed = 0;
+                            isSpinning = false;
+                            isDecelerating = false;
+                            onWheelStopped();
+                            return;
+                        }
+                    }
+
+                    wheelPos += wheelSpeed;
+
+                    // boundary bounce
+                    var maxScroll = TOTAL_CARDS * CARD_WIDTH - CONTAINER_WIDTH;
+                    if (wheelPos < 0) {
+                        wheelPos = 0;
+                        wheelSpeed = Math.abs(wheelSpeed) * 0.5 + 2;
+                        chaosTimer = 0;
+                    }
+                    if (wheelPos > maxScroll) {
+                        wheelPos = maxScroll;
+                        wheelSpeed = -(Math.abs(wheelSpeed) * 0.5 + 2);
+                        chaosTimer = 0;
+                    }
+                }
+
+                function renderWheel() {
+                    cardListEl.scrollLeft = Math.round(wheelPos);
+
+                    var centerIdx = getCardAtCenter();
+                    if (centerIdx !== lastCenterIdx) {
+                        lastCenterIdx = centerIdx;
+                        tickPool[tickPoolIdx].currentTime = 0;
+                        tickPool[tickPoolIdx].play();
+                        tickPoolIdx = (tickPoolIdx + 1) % TICK_POOL_SIZE;
+                    }
+
+                    var absSpeed = Math.abs(wheelSpeed);
+                    var dangerLevel;
+                    if (absSpeed > 12) dangerLevel = 'MAXIMUM';
+                    else if (absSpeed > 8) dangerLevel = 'CRITICAL';
+                    else if (absSpeed > 4) dangerLevel = 'HIGH';
+                    else if (absSpeed > 2) dangerLevel = 'MEDIUM';
+                    else if (absSpeed > 0.4) dangerLevel = 'LOW';
+                    else dangerLevel = 'STOPPED';
+                    speedDisplay.textContent = dangerLevel;
+                    speedDisplay.className = 'speed-' + dangerLevel.toLowerCase();
+
+                    
+
+                    // arrow flash near tease
+                    if (arrowEl) {
+                        if (isTeaseNearby(1)) {
+                            arrowEl.style.borderTopColor = '#ff0';
+                            arrowEl.style.transform = 'scale(1.4)';
+                        } else {
+                            arrowEl.style.borderTopColor = '#f00';
+                            arrowEl.style.transform = 'scale(1)';
+                        }
+                    }
+
+                    // near miss taunt timer
+                    if (nearMissTimer > 0) {
+                        nearMissTimer -= 16;
+                        if (nearMissTimer <= 0) {
+                            nearMissDisplay.textContent = '';
+                        }
+                    }
+                }
+
+                function openCase() {
+                    document.getElementById('spin-container').style.display = 'block';
+                    heartbeatAudio.play();
+
+                    generateCards();
+                    buildCardList();
+
+                    wheelPos = 500 + Math.random() * 2000;
+                    wheelSpeed = 4 + Math.random() * 2;
+                    targetSpeed = wheelSpeed;
+                    isSpinning = true;
+                    isDecelerating = false;
+                    chaosTimer = 800;
+                    fakePauseTimer = 2500 + Math.random() * 1500;
+                    fakePausing = false;
+                    nearMissTimer = 0;
+                    nearMissDisplay.textContent = '';
+                    lastCenterIdx = -1;
+
+                    stopBtnEl.style.display = 'block';
+
+                    lastTime = performance.now();
+                    animFrameId = requestAnimationFrame(gameLoop);
+                }
+
+                function gameLoop(timestamp) {
+                    var dt = timestamp - lastTime;
+                    lastTime = timestamp;
+                    if (dt > 100) dt = 16;
+
+                    if (!isSpinning && !isDecelerating) return;
+
+                    updateSpeed(dt);
+                    renderWheel();
+
+                    if (isSpinning || isDecelerating) {
+                        animFrameId = requestAnimationFrame(gameLoop);
+                    }
+                }
+
+                stopBtnEl.addEventListener('click', () => {
+                    buttonAudio.pause();
+                    buttonAudio.currentTime = 0;
+                    buttonAudio.play();
+                    if (!isSpinning || isDecelerating) return;
+                    stopBtnEl.style.display = 'none';
+
+                    // slip the wheel when near tease (IMPOSSIBLE to win tease)
+                    var slipAmount = 0;
+                    if (isTeaseNearby(4)) {
+                        var slipDir = wheelSpeed >= 0 ? 1 : -1;
+                        slipAmount = slipDir * CARD_WIDTH * (2 + Math.random() * 4);
+                        nearMissDisplay.textContent = nearMissMessages[random(0, nearMissMessages.length)];
+                        nearMissTimer = 3000;
+                    }
+
+                    // random reaction delay (CHAOS)
+                    var stopDelay = 60 + Math.random() * 350;
+                    setTimeout(() => {
+                        wheelPos += slipAmount;
+                        // one last chaos jolt
+                        wheelSpeed += (Math.random() - 0.3) * 6;
+                        isDecelerating = true;
+                    }, stopDelay);
+                });
+
+                function onWheelStopped() {
+                    heartbeatAudio.pause();
+                    heartbeatAudio.currentTime = 0;
+                    if (animFrameId) cancelAnimationFrame(animFrameId);
+                    spinContainer.style.transform = 'translate(-50%, -50%)';
+
+                    var centerIdx = getCardAtCenter();
+                    var rarity = cards[centerIdx] ? cards[centerIdx].rarity : 'worthless';
+
+                    // absolutely guarantee tease is unwinnable
+                    if (rarity === 'tease') {
+                        centerIdx += (wheelSpeed >= 0 ? 1 : -1);
+                        centerIdx = Math.max(0, Math.min(TOTAL_CARDS - 1, centerIdx));
+                        rarity = cards[centerIdx].rarity;
+                        if (rarity === 'tease') rarity = 'worthless';
+                        nearMissDisplay.textContent = nearMissMessages[random(0, nearMissMessages.length)];
+                    }
+
+                    var src = $('#itemNumber' + centerIdx + ' img').attr('src');
+                    $('#itemNumber' + centerIdx).css({ background: "linear-gradient(#00bf09, #246b27)" });
+
+                    if (rarity === "worthless" || rarity === "uncommon") {
+                        var couponCode = makeFakeCouponCode();
+                        $('#dialog-msg').html("You have received " + ODDS[rarity].label + " item!" + "<br><img src=" + src + ">" + "<br> Your AdRewards Discount Code: <br>" + "<h3>" + couponCode + "</h3>");
+                        $('#dialog').dialog({
+                            modal: true,
+                            title: "Ad Reward!",
+                            resizable: false,
+                            draggable: false,
+                            width: 400,
+                            closeOnEscape: false,
+                            open: function (event, ui) {
+                                $('.ui-dialog-titlebar-close', $(this).parent()).hide();
+                                confetti();
+                            },
+                            buttons: {
+                                "Claim AdRewards\u2122 Reward": function () {
+                                    $(this).dialog("close");
+                                    document.getElementById('spin-container').style.display = 'none';
+                                    if (skipCooldown.style.display !== 'block') skipButton.style.display = 'block';
+                                }
+                            }
+                        });
+                    } else if (rarity === "skipAd") {
+                        $('#dialog-msg').html("Congragulations!" + "<br><img src=" + src + ">");
+                        $('#dialog').dialog({
+                            modal: true,
+                            title: "Ad Reward!",
+                            resizable: false,
+                            draggable: false,
+                            width: 400,
+                            closeOnEscape: false,
+                            open: function (event, ui) {
+                                $('.ui-dialog-titlebar-close', $(this).parent()).hide();
+                                confetti();
+                            },
+                            buttons: {
+                                "Claim AdRewards\u2122 Reward": function () {
+                                    $(this).dialog("close");
+                                    document.getElementById('spin-container').style.display = 'none';
+                                    window.adSuccess();
+                                }
+                            }
+                        });
+                    }
+                }
             })(window, document);
         </script>
     </body>
