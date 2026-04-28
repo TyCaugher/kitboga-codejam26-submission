@@ -57,6 +57,9 @@ body {
     cursor: not-allowed;
     display: none;
 }
+.subtext {
+    color:white;
+}
 #cardList {
     height: 100px;
     width: 800px;
@@ -65,6 +68,8 @@ body {
     overflow: hidden;
     white-space: nowrap;
     scroll-behavior: auto;
+    font-size: 0;
+    line-height: 0;
 }
 
 .card {
@@ -75,6 +80,8 @@ body {
     border-right: 1px solid black;
     width: 100px;
     height: 100px;
+    box-sizing: border-box;
+    vertical-align: top;
 }
 
 .card > img {

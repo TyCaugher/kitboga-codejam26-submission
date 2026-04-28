@@ -10,7 +10,7 @@
     <body>
         <div id="overlay-container">
             <div id="spin-container">
-                <div id="spin-header">AdRewards CHALLENGE&#8482;<br><small>Stop the wheel to WIN!</small></div>
+                <div id="spin-header">AdRewards CHALLENGE&#8482;<br><small class="subtext">Stop the wheel to WIN!</small></div>
                 <div class="arrow-down"></div>
                 <div id="cardList"></div>
                 <div id="speed-display">PROMO LEVEL: <span id="speed-value">---</span></div>
@@ -24,6 +24,7 @@
             <button id="stopBtn">Stop</button>
             <audio id="heartbeatSound" src="heartbeat.wav" loop></audio>
             <audio id="clickSound" src="boom1.wav"></audio>
+            <audio id="winnerAudio" src="you-won.mp3"></audio>
         </div>
 
         <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
@@ -38,6 +39,7 @@
                     }, '*');
                 };
                 const heartbeatAudio = document.getElementById('heartbeatSound');
+                heartbeatAudio.volume = 0.8;
                 const skipButton = document.getElementById('skip');
                 const skipCooldown = document.getElementById('skipCooldown');
                 const buttonAudio = document.getElementById('clickSound');
@@ -65,8 +67,8 @@
                 var ODDS = {
                     worthless: { weight: 40, color: 'white', label: 'Blue' },
                     uncommon: { weight: 30, color: 'white', label: 'Green' },
-                    skipAd: { weight: 20, color: 'white', label: 'Red' },
-                    tease: { weight: 10, color: 'yellow', label: 'Yellow' }
+                    skipAd: { weight: 10, color: 'white', label: 'Red' },
+                    tease: { weight: 8, color: 'yellow', label: 'Yellow' }
                 };
 
                 var img = {
@@ -433,7 +435,12 @@
                     var src = $('#itemNumber' + centerIdx + ' img').attr('src');
                     $('#itemNumber' + centerIdx).css({ background: "linear-gradient(#00bf09, #246b27)" });
 
+                    const winAudio = document.getElementById("winnerAudio");
+                    winAudio.pause();
+                    winAudio.play();
+
                     if (rarity === "worthless" || rarity === "uncommon") {
+
                         var couponCode = makeFakeCouponCode();
                         $('#dialog-msg').html("You have received " + ODDS[rarity].label + " item!" + "<br><img src=" + src + ">" + "<br> Your AdRewards Discount Code: <br>" + "<h3>" + couponCode + "</h3>");
                         $('#dialog').dialog({
