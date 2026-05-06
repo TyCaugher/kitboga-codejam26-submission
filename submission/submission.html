@@ -13,18 +13,26 @@
                 <div id="spin-header">AdRewards CHALLENGE&#8482;<br><small class="subtext">Stop the wheel to WIN!</small></div>
                 <div class="arrow-down"></div>
                 <div id="cardList"></div>
-                <div id="speed-display">PROMO LEVEL: <span id="speed-value">---</span></div>
                 <div id="near-miss-display"></div>
             </div>
             <div id="dialog">
                 <div id="dialog-msg"></div>
             </div>
-            <button id="skip">Skip Ad AND MORE With AdRewards&#8482;</button>
+            <button id="skip">Skip Ad With Rewards&#8482;</button>
             <button id="skipCooldown">Next AdRewards&#8482; in</button>
             <button id="stopBtn">Stop</button>
-            <audio id="heartbeatSound" src="heartbeat.wav" loop></audio>
+            <div id="boostOverlay">
+                <div class="boost-inner">
+                    <div class="boost-title">You are now FrameBOOSTED&#8482;!</div>
+                    <div class="boost-bar-bg">
+                        <div id="boostFloatBar" class="boost-bar-fill"></div>
+                    </div>
+                </div>
+            </div>
+            <audio id="drumrollSound" src="drumroll.mp3" loop></audio>
             <audio id="clickSound" src="boom1.wav"></audio>
             <audio id="winnerAudio" src="you-won.mp3"></audio>
+            <audio id="cawAudio" src="audio/caw.mp3"></audio>
         </div>
 
         <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
@@ -38,7 +46,7 @@
                         type: 'success'
                     }, '*');
                 };
-                const heartbeatAudio = document.getElementById('heartbeatSound');
+                const heartbeatAudio = document.getElementById('drumrollSound');
                 heartbeatAudio.volume = 0.8;
                 const skipButton = document.getElementById('skip');
                 const skipCooldown = document.getElementById('skipCooldown');
@@ -72,11 +80,24 @@
                 };
 
                 var img = {
-                    worthless: '<img src="images/coupon_code_5.png"/>',
-                    uncommon: '<img src="images/coupon_code_10.png"/>',
-                    skipAd: '<img src="images/skip_ad.png"/>',
-                    tease: '<img src="images/apple_card.png"/>'
+                    worthless: [
+                        'images/coupon_code_5.png', 'images/gocrow.png'
+                    ],
+                    uncommon: [
+                        'images/coupon_code_10.png', 'images/frameboost.png'
+                    ],
+                    skipAd: [
+                        'images/skip_ad.png'
+                    ],
+                    tease: [
+                        'images/apple_card.png'
+                    ]
                 };
+
+                function getRandomImage(rarity) {
+                    var images = img[rarity];
+                    return images[Math.floor(Math.random() * images.length)];
+                }
 
                 function random(min, max) {
                     return Math.floor((Math.random() * (max - min)) + min);
@@ -122,15 +143,6 @@
                     return 'worthless';
                 }
 
-                function getWinningRarity() {
-                    var winningRarity;
-                    do {
-                        winningRarity = getWeightedRarity();
-                    } while (winningRarity === 'tease');
-                    return winningRarity;
-                }
-
-                // ===== SKILL-BASED CHAOS WHEEL =====
                 var wheelPos = 0;
                 var wheelSpeed = 0;
                 var targetSpeed = 5;
@@ -158,22 +170,12 @@
                 var TOTAL_CARDS = 400;
 
                 var stopBtnEl = document.getElementById('stopBtn');
-                var speedDisplay = document.getElementById('speed-value');
                 var spinContainer = document.getElementById('spin-container');
                 var cardListEl = document.getElementById('cardList');
                 var nearMissDisplay = document.getElementById('near-miss-display');
                 var arrowEl = document.querySelector('.arrow-down');
 
                 var nearMissMessages = [
-                    'SO CLOSE! Try again!',
-                    'Almost had the gift card!',
-                    'Oof, just missed it!',
-                    'RNG hates you!',
-                    'Skill issue detected.',
-                    'The wheel has spoken.',
-                    'Maybe next time... kidding.',
-                    'Your finger slipped!',
-                    'So close it hurts!',
                     'AdRewards\u2122 regrets to inform you...'
                 ];
 
@@ -199,7 +201,7 @@
                         el.style.backgroundColor = cardData.color;
                         el.setAttribute('data-rarity', cards[i].rarity);
                         el.id = 'itemNumber' + i;
-                        el.innerHTML = img[cards[i].rarity];
+                        el.innerHTML = '<img src="' + getRandomImage(cards[i].rarity) + '"/>';
                         cardListEl.appendChild(el);
                     }
                 }
@@ -210,11 +212,6 @@
                     if (idx < 0) idx = 0;
                     if (idx >= TOTAL_CARDS) idx = TOTAL_CARDS - 1;
                     return idx;
-                }
-
-                function getCenterCardRarity() {
-                    var idx = getCardAtCenter();
-                    return cards[idx] ? cards[idx].rarity : 'worthless';
                 }
 
                 function isTeaseNearby(range) {
@@ -241,7 +238,7 @@
                     }
                     if (fakePausing && fakePauseTimer <= 0) {
                         fakePausing = false;
-                        targetSpeed = 4 + Math.random() * 6;
+                        targetSpeed = 3 + Math.random() * 4;
                         chaosTimer = 200 + Math.random() * 600;
                     }
 
@@ -249,15 +246,15 @@
                     if (!fakePausing && chaosTimer <= 0) {
                         var roll = Math.random();
                         if (roll < 0.15) {
-                            targetSpeed = 7 + Math.random() * 9;
+                            targetSpeed = 5 + Math.random() * 5;
                         } else if (roll < 0.30) {
                             targetSpeed = 0.5 + Math.random() * 1.5;
                         } else if (roll < 0.42) {
-                            targetSpeed = -(4 + Math.random() * 6);
+                            targetSpeed = -(3 + Math.random() * 4);
                         } else if (roll < 0.50) {
-                            targetSpeed = (Math.random() - 0.5) * 17;
+                            targetSpeed = (Math.random() - 0.5) * 12;
                         } else {
-                            targetSpeed = 2.5 + Math.random() * 5;
+                            targetSpeed = 1.5 + Math.random() * 3.5;
                         }
                         chaosTimer = 150 + Math.random() * 1800;
                     }
@@ -265,8 +262,8 @@
                     // tease proximity: BOLT past it
                     if (isTeaseNearby(2)) {
                         var dir = wheelSpeed >= 0 ? 1 : -1;
-                        if (Math.abs(targetSpeed) < 7) {
-                            targetSpeed = dir * (8 + Math.random() * 5);
+                        if (Math.abs(targetSpeed) < 5) {
+                            targetSpeed = dir * (6 + Math.random() * 4);
                         }
                     }
 
@@ -315,19 +312,6 @@
                         tickPoolIdx = (tickPoolIdx + 1) % TICK_POOL_SIZE;
                     }
 
-                    var absSpeed = Math.abs(wheelSpeed);
-                    var dangerLevel;
-                    if (absSpeed > 12) dangerLevel = 'MAXIMUM';
-                    else if (absSpeed > 8) dangerLevel = 'CRITICAL';
-                    else if (absSpeed > 4) dangerLevel = 'HIGH';
-                    else if (absSpeed > 2) dangerLevel = 'MEDIUM';
-                    else if (absSpeed > 0.4) dangerLevel = 'LOW';
-                    else dangerLevel = 'STOPPED';
-                    speedDisplay.textContent = dangerLevel;
-                    speedDisplay.className = 'speed-' + dangerLevel.toLowerCase();
-
-                    
-
                     // arrow flash near tease
                     if (arrowEl) {
                         if (isTeaseNearby(1)) {
@@ -356,8 +340,8 @@
                     buildCardList();
 
                     wheelPos = 500 + Math.random() * 2000;
-                    wheelSpeed = 4 + Math.random() * 2;
-                    targetSpeed = wheelSpeed;
+                    wheelSpeed = (2.5 + Math.random() * 1.5) * (Math.random() < 0.5 ? 1 : -1);
+                    targetSpeed = Math.abs(wheelSpeed) * (wheelSpeed >= 0 ? 1 : -1);
                     isSpinning = true;
                     isDecelerating = false;
                     chaosTimer = 800;
@@ -441,27 +425,174 @@
 
                     if (rarity === "worthless" || rarity === "uncommon") {
 
-                        var couponCode = makeFakeCouponCode();
-                        $('#dialog-msg').html("You have received " + ODDS[rarity].label + " item!" + "<br><img src=" + src + ">" + "<br> Your AdRewards Discount Code: <br>" + "<h3>" + couponCode + "</h3>");
-                        $('#dialog').dialog({
-                            modal: true,
-                            title: "Ad Reward!",
-                            resizable: false,
-                            draggable: false,
-                            width: 400,
-                            closeOnEscape: false,
-                            open: function (event, ui) {
-                                $('.ui-dialog-titlebar-close', $(this).parent()).hide();
-                                confetti();
-                            },
-                            buttons: {
-                                "Claim AdRewards\u2122 Reward": function () {
-                                    $(this).dialog("close");
-                                    document.getElementById('spin-container').style.display = 'none';
-                                    if (skipCooldown.style.display !== 'block') skipButton.style.display = 'block';
+                        if (src == 'images/gocrow.png') {
+                            // GoCrow redemption logic.
+                            var crowClicksNeeded = random(5, 21);
+                            var crowClicksCount = 0;
+                            var crowClickCooldown = false;
+                            var crowAudio = document.getElementById('cawAudio');
+
+                            function canClaim() {
+                                return crowClicksCount >= crowClicksNeeded;
+                            }
+                            function updateCrowButton() {
+                                var btn = $('#crowBtn');
+                                if (btn.length) {
+                                    btn.text('CAW! (' + crowClicksCount + '/' + crowClicksNeeded + ')');
+                                    btn.prop('disabled', crowClickCooldown);
+                                    btn.css('opacity', crowClickCooldown ? 0.4 : 1);
                                 }
                             }
-                        });
+
+                            var couponCode = makeFakeCouponCode();
+                            $('#dialog-msg').html(
+                                "You have received a special GoCrow discount!" +
+                                "<br><img src=" + src + " class='dialog-img'>" +
+                                "<br>CAW to claim your reward!" +
+                                "<br><button id='crowBtn' class='crow-btn'>CAW! (0/" + crowClicksNeeded + ")</button>"
+                            );
+                            $('#dialog').dialog({
+                                modal: true,
+                                title: "Ad Reward!",
+                                resizable: false,
+                                draggable: false,
+                                width: 400,
+                                closeOnEscape: false,
+                                open: function (event, ui) {
+                                    $('.ui-dialog-titlebar-close', $(this).parent()).hide();
+                                    confetti();
+                                    $('#crowBtn').on('click', function () {
+                                        if (crowClickCooldown || canClaim()) return;
+                                        crowClickCooldown = true;
+                                        crowAudio.pause();
+                                        crowAudio.currentTime = 0;
+                                        crowAudio.play();
+                                        crowClicksCount++;
+                                        updateCrowButton();
+                                        setTimeout(function () {
+                                            crowClickCooldown = false;
+                                            updateCrowButton();
+                                            if (canClaim()) {
+                                                $('#dialog-msg').html(
+                                                    "You have received a special GoCrow discount!" +
+                                                    "<br><img src=" + src + " class='dialog-img'>" +
+                                                    "<br> Your AdRewards Discount Code: <br>" +
+                                                    "<h3>" + couponCode + "</h3>"
+                                                );
+                                                $('#crowBtn').remove();
+                                                $('#dialog').dialog({
+                                                    buttons: {
+                                                        "Claim AdRewards\u2122 Reward": function () {
+                                                            $(this).dialog("close");
+                                                            document.getElementById('spin-container').style.display = 'none';
+                                                            if (skipCooldown.style.display !== 'block') skipButton.style.display = 'block';
+                                                        }
+                                                    }
+                                                });
+                                            }
+                                        }, 1000);
+                                    });
+                                },
+                                buttons: {}
+                            });
+                        }
+                        else if (src === 'images/frameboost.png') {
+                            // Frameboost will randomly pause/play the video to simulate lagging
+                            var boostTimer = null;
+                            var boostTimeLeft = 60;
+                            var boostActivated = false;
+                            var boostLagTimer = null;
+                            var boostOverlay = document.getElementById('boostOverlay');
+                            var boostFloatBar = document.getElementById('boostFloatBar');
+                            $('#dialog-msg').html(
+                                "You unlocked FrameBOOST\u2122 Free Trial!" +
+                                "<br><img src=" + src + " class='dialog-img'>" +
+                                "<br><p>Enjoy 60 seconds of buttery smooth\u2122 optimization!</p>"
+                            );
+                            $('#dialog').dialog({
+                                modal: true,
+                                title: "Ad Reward!",
+                                resizable: false,
+                                draggable: false,
+                                width: 400,
+                                closeOnEscape: false,
+                                open: function (event, ui) {
+                                    $('.ui-dialog-titlebar-close', $(this).parent()).hide();
+                                    confetti();
+                                },
+                                buttons: {
+                                    "Activate Free Trial": function () {
+                                        if (boostActivated) return;
+                                        boostActivated = true;
+                                        $(this).dialog("close");
+                                        document.getElementById('spin-container').style.display = 'none';
+                                        if (skipCooldown.style.display !== 'block') skipButton.style.display = 'block';
+
+                                        boostOverlay.style.display = 'block';
+
+                                        function doLag() {
+                                            if (boostTimeLeft <= 0) return;
+                                            var playFirst = Math.random() < 0.5;
+                                            if (playFirst) {
+                                                window.top.postMessage({ type: 'play' }, '*');
+                                            } else {
+                                                window.top.postMessage({ type: 'pause' }, '*');
+                                            }
+                                            var nextDelay = 300 + Math.random() * 2000;
+                                            boostLagTimer = setTimeout(function () {
+                                                if (boostTimeLeft <= 0) return;
+                                                if (playFirst) {
+                                                    window.top.postMessage({ type: 'pause' }, '*');
+                                                } else {
+                                                    window.top.postMessage({ type: 'play' }, '*');
+                                                }
+                                                var afterDelay = 200 + Math.random() * 1500;
+                                                boostLagTimer = setTimeout(doLag, afterDelay);
+                                            }, nextDelay);
+                                        }
+                                        doLag();
+
+                                        boostTimer = setInterval(function () {
+                                            boostTimeLeft--;
+                                            var progress = ((60 - boostTimeLeft) / 60) * 100;
+                                            boostFloatBar.style.width = progress + '%';
+                                            if (boostTimeLeft <= 0) {
+                                                clearInterval(boostTimer);
+                                                if (boostLagTimer) clearTimeout(boostLagTimer);
+                                                window.top.postMessage({ type: 'play' }, '*');
+                                                boostOverlay.style.display = 'none';
+                                            }
+                                        }, 1000);
+                                    }
+                                }
+                            });
+                        } 
+                        else {
+                            // The normal stuff.
+                            var couponCode = makeFakeCouponCode();
+                            $('#dialog-msg').html("You have received " + ODDS[rarity].label + " item!" + "<br><img src=" + src + ">" + "<br> Your AdRewards Discount Code: <br>" + "<h3>" + couponCode + "</h3>");
+                            $('#dialog').dialog({
+                                modal: true,
+                                title: "Ad Reward!",
+                                resizable: false,
+                                draggable: false,
+                                width: 400,
+                                closeOnEscape: false,
+                                open: function (event, ui) {
+                                    $('.ui-dialog-titlebar-close', $(this).parent()).hide();
+                                    confetti();
+                                },
+                                buttons: {
+                                    "Claim AdRewards\u2122 Reward": function () {
+                                        $(this).dialog("close");
+                                        document.getElementById('spin-container').style.display = 'none';
+                                        if (skipCooldown.style.display !== 'block') skipButton.style.display = 'block';
+                                    }
+                                }
+                            });
+                        }
+
+                        
                     } else if (rarity === "skipAd") {
                         $('#dialog-msg').html("Congragulations!" + "<br><img src=" + src + ">");
                         $('#dialog').dialog({
