@@ -6,6 +6,11 @@ Created for the 2026 Kitboga Creation Jam by Kro
 
 The ad is not skipped unless you roll "SKIP AD" on the wheel, hope you have some reaction times!
 
+### How Does It Work
+- Upon skipping with "AdRewards" the wheel lurches in random directions, only being stopped by the red STOP button.
+- Rewards are calculated based on the arrow pixel position and which image src it rests on top of.
+- The wheel is built based on the assigned ODDS and places them based on rarity.
+
 ### The Prizes
 - GoCrow Discount Code
   - Caw! 1/20
@@ -18,10 +23,7 @@ The ad is not skipped unless you roll "SKIP AD" on the wheel, hope you have some
 - Legally distinct Apple gift card that is literally impossible to hit as bait.
 - and some random non descript AdRewards discount codes for filler.
 
-### How Does It Work
-- Upon skipping with "AdRewards" the wheel lurches in random directions, only being stopped by the red STOP button.
-- Rewards are calculated based on the arrow pixel position and which image src it rests on top of.
-- The wheel is built based on the assigned ODDS and places them based on rarity.
+Feel free to adjust the rarities if the difficulty is too hard or too long, most of the values should be pretty easy to tweak.
 
 ### Technology Used
 - HTML
