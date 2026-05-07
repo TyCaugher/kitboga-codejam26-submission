@@ -195,7 +195,7 @@
                     }
                 }
 
-                function buildCardList() {
+                function buildCardList() { // build our wheel list
                     cardListEl.innerHTML = '';
                     for (var i = 0; i < cards.length; i++) {
                         var cardData = ODDS[cards[i].rarity];
@@ -210,7 +210,7 @@
                     }
                 }
 
-                function getCardAtCenter() {
+                function getCardAtCenter() { // get the spin result based on pixel pos
                     var centerPixel = wheelPos + CONTAINER_WIDTH / 2;
                     var idx = Math.floor(centerPixel / CARD_WIDTH);
                     if (idx < 0) idx = 0;
@@ -218,7 +218,7 @@
                     return idx;
                 }
 
-                function isTeaseNearby(range) {
+                function isTeaseNearby(range) { // make sure we can't actually land on tease rarity.
                     var centerIdx = getCardAtCenter();
                     for (var i = centerIdx - range; i <= centerIdx + range; i++) {
                         if (i >= 0 && i < TOTAL_CARDS && cards[i].rarity === 'tease') {
@@ -336,7 +336,7 @@
                     }
                 }
 
-                function openCase() {
+                function openCase() { // the opening logic
                     document.getElementById('spin-container').style.display = 'block';
                     drumrollAudio.play();
 
@@ -376,7 +376,7 @@
                     }
                 }
 
-                stopBtnEl.addEventListener('click', () => {
+                stopBtnEl.addEventListener('click', () => { // stop logic
                     buttonAudio.volume = sfxVol;
                     buttonAudio.pause();
                     buttonAudio.currentTime = 0;
@@ -403,7 +403,7 @@
                     }, stopDelay);
                 });
 
-                function onWheelStopped() {
+                function onWheelStopped() { // stop logic
                     drumrollAudio.pause();
                     drumrollAudio.currentTime = 0;
                     if (animFrameId) cancelAnimationFrame(animFrameId);
@@ -429,9 +429,9 @@
                     winAudio.pause();
                     winAudio.play();
 
-                    if (rarity === "worthless" || rarity === "uncommon") {
+                    if (rarity === "worthless" || rarity === "uncommon") { // generic common rarity logic
 
-                        if (src == 'images/gocrow.png') {
+                        if (src == 'images/gocrow.png') { // Special GoCrow logic
                             // GoCrow redemption logic.
                             var crowClicksNeeded = random(5, 21);
                             var crowClicksCount = 0;
@@ -457,7 +457,7 @@
                                 "<br>CAW to claim your reward!" +
                                 "<br><button id='crowBtn' class='crow-btn'>CAW! (0/" + crowClicksNeeded + ")</button>"
                             );
-                            $('#dialog').dialog({
+                            $('#dialog').dialog({ // GoCrow L
                                 modal: true,
                                 title: "Ad Reward!",
                                 resizable: false,
@@ -502,7 +502,7 @@
                                 buttons: {}
                             });
 } 
-                        else if (src === 'images/screwad.png' || src === 'snakeoil.png') {
+                        else if (src === 'images/screwad.png' || src === 'snakeoil.png') { // I LOVE PRODUCT logic
                             window.top.postMessage({ type: 'pause' }, '*');
                             var confessionPhrases = [
                                 'I BUY THIS PRODUCT',
@@ -588,7 +588,7 @@
                                 }
                             });
                         }
-                        else if (src === 'images/frameboost.png') {
+                        else if (src === 'images/frameboost.png') { // frameboost ad logic
                             var boostTimer = null;
                             var boostTimeLeft = 60;
                             var boostActivated = false;
@@ -660,7 +660,7 @@
                                 }
                             });
                         } 
-                        else if (src === 'images/maldymeditation.png') {
+                        else if (src === 'images/maldymeditation.png') { // meditation reward logic
                             window.top.postMessage({ type: 'pause' }, '*');
                             var meditationAudio = document.getElementById('meditationAudio');
                             var meditationProgress = document.getElementById('meditationProgress');
@@ -743,7 +743,7 @@
                         }
 
                         
-                    } else if (rarity === "skipAd") {
+                    } else if (rarity === "skipAd") { // skip the ad!
                         $('#dialog-msg').html("Congragulations!" + "<br><img src=" + src + ">");
                         $('#dialog').dialog({
                             modal: true,
