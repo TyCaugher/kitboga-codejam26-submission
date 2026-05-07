@@ -10,7 +10,7 @@
     <body>
         <div id="overlay-container">
             <div id="spin-container">
-                <div id="spin-header">AdRewards CHALLENGE&#8482;<br><small class="subtext">Stop the wheel to WIN!</small></div>
+                <div id="spin-header">AdRewards Prize Wheel&#8482;<br><small class="subtext" style="color: white">Stop the wheel to WIN!</small></div>
                 <div class="arrow-down"></div>
                 <div id="cardList"></div>
                 <div id="near-miss-display"></div>
@@ -33,6 +33,7 @@
             <audio id="clickSound" src="boom1.wav"></audio>
             <audio id="winnerAudio" src="you-won.mp3"></audio>
             <audio id="cawAudio" src="audio/caw.mp3"></audio>
+            <audio id="meditationAudio" src="audio/maldysmeditation.mp3"></audio>
         </div>
 
         <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
@@ -46,12 +47,13 @@
                         type: 'success'
                     }, '*');
                 };
-                const heartbeatAudio = document.getElementById('drumrollSound');
-                heartbeatAudio.volume = 0.8;
+                const sfxVol = 0.3; // sound effects volume
+                const drumrollAudio = document.getElementById('drumrollSound');
+                drumrollAudio.volume = 0.3;
                 const skipButton = document.getElementById('skip');
                 const skipCooldown = document.getElementById('skipCooldown');
                 const buttonAudio = document.getElementById('clickSound');
-                var cooldownDuration = 10;
+                var cooldownDuration = 20; // AdREwards button cooldown
                 skipCooldown.style.display = 'none';
 
                 window.addEventListener('message', (event) => {
@@ -72,19 +74,21 @@
                     startCooldown();
                 });
 
+                // How the images are distributed based on rarity.
                 var ODDS = {
                     worthless: { weight: 40, color: 'white', label: 'Blue' },
-                    uncommon: { weight: 30, color: 'white', label: 'Green' },
-                    skipAd: { weight: 10, color: 'white', label: 'Red' },
-                    tease: { weight: 8, color: 'yellow', label: 'Yellow' }
+                    uncommon: { weight: 36, color: 'white', label: 'Green' },
+                    skipAd: { weight: 5, color: 'white', label: 'Red' },
+                    tease: { weight: 2, color: 'yellow', label: 'Yellow' }
                 };
 
+                // The images themselves
                 var img = {
                     worthless: [
-                        'images/coupon_code_5.png', 'images/gocrow.png'
+                        'images/coupon_code_5.png', 'images/gocrow.png', 'images/screwad.png', 'images/snakeoil.png'
                     ],
                     uncommon: [
-                        'images/coupon_code_10.png', 'images/frameboost.png'
+                        'images/coupon_code_10.png', 'images/frameboost.png', 'images/maldymeditation.png'
                     ],
                     skipAd: [
                         'images/skip_ad.png'
@@ -112,7 +116,7 @@
                     return result;
                 }
 
-                function startCooldown() {
+                function startCooldown() { // Start the AdRewards button cooldown so its not spammable
                     skipButton.style.display = 'none';
                     skipCooldown.style.display = 'block';
                     var timeLeft = cooldownDuration;
@@ -334,7 +338,7 @@
 
                 function openCase() {
                     document.getElementById('spin-container').style.display = 'block';
-                    heartbeatAudio.play();
+                    drumrollAudio.play();
 
                     generateCards();
                     buildCardList();
@@ -373,6 +377,7 @@
                 }
 
                 stopBtnEl.addEventListener('click', () => {
+                    buttonAudio.volume = sfxVol;
                     buttonAudio.pause();
                     buttonAudio.currentTime = 0;
                     buttonAudio.play();
@@ -399,8 +404,8 @@
                 });
 
                 function onWheelStopped() {
-                    heartbeatAudio.pause();
-                    heartbeatAudio.currentTime = 0;
+                    drumrollAudio.pause();
+                    drumrollAudio.currentTime = 0;
                     if (animFrameId) cancelAnimationFrame(animFrameId);
                     spinContainer.style.transform = 'translate(-50%, -50%)';
 
@@ -420,6 +425,7 @@
                     $('#itemNumber' + centerIdx).css({ background: "linear-gradient(#00bf09, #246b27)" });
 
                     const winAudio = document.getElementById("winnerAudio");
+                    winAudio.volume = sfxVol;
                     winAudio.pause();
                     winAudio.play();
 
@@ -495,15 +501,102 @@
                                 },
                                 buttons: {}
                             });
+} 
+                        else if (src === 'images/screwad.png' || src === 'snakeoil.png') {
+                            window.top.postMessage({ type: 'pause' }, '*');
+                            var confessionPhrases = [
+                                'I BUY THIS PRODUCT',
+                                'I LOVE THIS PRODUCT',
+                                'THIS PRODUCT CHANGED MY LIFE',
+                                'I TRUST THIS PRODUCT',
+                                'THIS PRODUCT IS THE BEST',
+                                'I CANNOT LIVE WITHOUT THIS'
+                            ];
+                            var requiredPhrase = confessionPhrases[random(0, confessionPhrases.length)];
+                            var requiredPhrase2 = confessionPhrases[random(0, confessionPhrases.length)];
+                            while (requiredPhrase2 === requiredPhrase) {
+                                requiredPhrase2 = confessionPhrases[random(0, confessionPhrases.length)];
+                            }
+                            var confessionStep = 0;
+                            var productName = src === 'images/screwad.png' ? 'ScrewAd' : 'SnakeOil';
+                            $('#dialog-msg').html(
+                                "You won " + productName + "!" +
+                                "<br><img src=" + src + " class='dialog-img'>" +
+                                "<br><p style='font-weight:bold;margin-top:10px;'>To claim your reward, please type:</p>" +
+                                "<p id='confessionPrompt' style='color:#0f0;font-size:1.1rem;font-weight:bold;'></p>" +
+                                "<input id='confessionInput' type='text' class='confession-input' autocomplete='off' spellcheck='false'>" +
+                                "<p id='confessionError' style='color:#f00;font-size:0.85rem;min-height:1.2em;'></p>" +
+                                "<p id='confessionProgress' style='color:#aaa;font-size:0.8rem;'></p>"
+                            );
+                            $('#dialog').dialog({
+                                modal: true,
+                                title: "Ad Reward!",
+                                resizable: false,
+                                draggable: false,
+                                width: 450,
+                                closeOnEscape: false,
+                                open: function (event, ui) {
+                                    $('.ui-dialog-titlebar-close', $(this).parent()).hide();
+                                    confetti();
+                                    var dialog = $(this);
+                                    var claimBtn = dialog.parent().find('.ui-dialog-buttonpane button');
+                                    claimBtn.prop('disabled', true).addClass('ui-state-disabled');
+                                    showConfessionStep();
+
+                                    function showConfessionStep() {
+                                        var phrase = confessionStep === 0 ? requiredPhrase : requiredPhrase2;
+                                        $('#confessionPrompt').text('"' + phrase + '"');
+                                        $('#confessionInput').val('').focus();
+                                        $('#confessionError').text('');
+                                        $('#confessionProgress').text('Phrase ' + (confessionStep + 1) + ' of 2');
+                                    }
+
+                                    $('#confessionInput').on('input', function () {
+                                        var phrase = confessionStep === 0 ? requiredPhrase : requiredPhrase2;
+                                        var val = $(this).val();
+                                        var expected = phrase.substring(0, val.length);
+                                        if (val.toUpperCase() !== expected.toUpperCase()) {
+                                            $('#confessionError').text('Keep trying...');
+                                            $(this).css('border-color', '#f00');
+                                        } else {
+                                            $('#confessionError').text('');
+                                            $(this).css('border-color', '#0f0');
+                                        }
+                                        if (val.toUpperCase() === phrase.toUpperCase()) {
+                                            confessionStep++;
+                                            if (confessionStep >= 2) {
+                                                claimBtn.prop('disabled', false).removeClass('ui-state-disabled');
+                                                $('#confessionInput').prop('disabled', true);
+                                                $('#confessionError').text('');
+                                                $('#confessionProgress').text('Confession accepted!');
+                                                $('#confessionPrompt').text('✓ Verified!').css('color', '#0f0');
+                                                $(this).css('border-color', '#0f0');
+                                            } else {
+                                                showConfessionStep();
+                                            }
+                                        }
+                                    });
+                                },
+                                buttons: {
+                                    "Claim AdRewards\u2122 Reward": function () {
+                                        if (confessionStep < 2) return;
+                                        window.top.postMessage({ type: 'play' }, '*');
+                                        $(this).dialog("close");
+                                        document.getElementById('spin-container').style.display = 'none';
+                                        if (skipCooldown.style.display !== 'block') skipButton.style.display = 'block';
+                                    }
+                                }
+                            });
                         }
                         else if (src === 'images/frameboost.png') {
-                            // Frameboost will randomly pause/play the video to simulate lagging
                             var boostTimer = null;
                             var boostTimeLeft = 60;
                             var boostActivated = false;
                             var boostLagTimer = null;
                             var boostOverlay = document.getElementById('boostOverlay');
                             var boostFloatBar = document.getElementById('boostFloatBar');
+                            boostFloatBar.style.width = '0%';
+                            boostOverlay.style.display = 'none';
                             $('#dialog-msg').html(
                                 "You unlocked FrameBOOST\u2122 Free Trial!" +
                                 "<br><img src=" + src + " class='dialog-img'>" +
@@ -567,6 +660,63 @@
                                 }
                             });
                         } 
+                        else if (src === 'images/maldymeditation.png') {
+                            window.top.postMessage({ type: 'pause' }, '*');
+                            var meditationAudio = document.getElementById('meditationAudio');
+                            var meditationProgress = document.getElementById('meditationProgress');
+                            var meditationBar = document.getElementById('meditationBar');
+                            $('#dialog-msg').html(
+                                "You unlocked Maldy's Meditation\u2122!" +
+                                "<br><img src=" + src + " class='dialog-img'>" +
+                                "<br><p>Relax and enjoy your guided meditation...</p>" +
+                                "<div class='meditation-bar-bg'><div id='meditationBar' class='meditation-bar-fill'></div></div>" +
+                                "<p id='meditationProgress' class='meditation-progress'>0%</p>"
+                            );
+                            $('#dialog').dialog({
+                                modal: true,
+                                title: "Ad Reward!",
+                                resizable: false,
+                                draggable: false,
+                                width: 400,
+                                closeOnEscape: false,
+                                open: function (event, ui) {
+                                    $('.ui-dialog-titlebar-close', $(this).parent()).hide();
+                                    confetti();
+                                    var dialog = $(this);
+                                    var claimBtn = dialog.parent().find('.ui-dialog-buttonpane button');
+                                    claimBtn.prop('disabled', true).addClass('ui-state-disabled');
+                                    meditationAudio.currentTime = 0;
+                                    meditationAudio.play();
+                                    meditationAudio.addEventListener('timeupdate', function onTimeUpdate() {
+                                        if (meditationAudio.duration) {
+                                            var pct = (meditationAudio.currentTime / meditationAudio.duration) * 100;
+                                            document.getElementById('meditationBar').style.width = pct + '%';
+                                            document.getElementById('meditationProgress').textContent = Math.floor(pct) + '%';
+                                        }
+                                        if (meditationAudio.ended) {
+                                            meditationAudio.removeEventListener('timeupdate', onTimeUpdate);
+                                            document.getElementById('meditationBar').style.width = '100%';
+                                            document.getElementById('meditationProgress').textContent = 'Meditation complete!';
+                                            claimBtn.prop('disabled', false).removeClass('ui-state-disabled');
+                                        }
+                                    });
+                                },
+                                close: function () {
+                                    meditationAudio.pause();
+                                    meditationAudio.currentTime = 0;
+                                    window.top.postMessage({ type: 'play' }, '*');
+                                },
+                                buttons: {
+                                    "Claim AdRewards\u2122 Reward": function () {
+                                        meditationAudio.pause();
+                                        window.top.postMessage({ type: 'play' }, '*');
+                                        $(this).dialog("close");
+                                        document.getElementById('spin-container').style.display = 'none';
+                                        if (skipCooldown.style.display !== 'block') skipButton.style.display = 'block';
+                                    }
+                                }
+                            });
+                        }
                         else {
                             // The normal stuff.
                             var couponCode = makeFakeCouponCode();
