@@ -31,6 +31,8 @@ Feel free to adjust the rarities if the difficulty is too hard or too long, most
 - JQuery
 - Canvas Confetti
 
+#### Inspired by https://stackoverflow.com/questions/72911789/make-csgo-case-opener-responsive-css
+
 Audio from OpenGameArt.org or created by myself.
 ---
 
